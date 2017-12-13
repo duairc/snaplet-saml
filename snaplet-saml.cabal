@@ -1,0 +1,70 @@
+name:           snaplet-saml
+version:        0.1
+synopsis:       Integrate your Snap application with a SAML Identity Provider
+license:        MPL-2.0
+license-file:   LICENSE
+author:         Shane O'Brien
+maintainer:     shane@duairc.com
+stability:      Experimental
+category:       Type
+cabal-version:  >= 1.6
+build-type:     Simple
+homepage:       https://github.com/duairc/snaplet-saml
+bug-reports:    https://github.com/duairc/snaplet-saml/issues
+
+extra-source-files:
+  LICENSE
+
+library
+  hs-source-dirs:
+    src
+
+  exposed-modules:
+    Snap.Snaplet.SAML
+
+  other-modules:
+    Data.X509.IO
+    Network.SAML.Assertion
+    Network.SAML.Metadata
+    Network.SAML.Protocol
+    Text.Blaze.SAML.Assertion
+    Text.Blaze.SAML.Metadata
+    Text.Blaze.SAML.Protocol
+    Text.Blaze.XML.Signature
+    Text.XML.Signature
+
+  build-depends:
+    asn1-encoding,
+    asn1-types,
+    base,
+    base64-bytestring,
+    blaze-markup,
+    bytestring,
+    cryptonite,
+    directory,
+    hashable,
+    hostname,
+    layers,
+    lens,
+    modern-uri,
+    mtl,
+    pem,
+    process,
+    random,
+    resource,
+    semigroupoids,
+    snap,
+    text,
+    time,
+    transformers,
+    unordered-containers,
+    uuid,
+    x509,
+    xml-conduit,
+    zlib
+
+  ghc-options: -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/duairc/snaplet-saml.git
