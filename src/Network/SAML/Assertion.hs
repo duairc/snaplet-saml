@@ -7,9 +7,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module Network.SAML.Assertion
-    ( Attributes
-    , FromAttributes, fromAttributes, ToAttributes, toAttributes
-    , Assertion (Assertion)
+    ( Assertion (Assertion), Attributes
     , newAssertion, buildSignNewAssertion, buildAssertion, buildSignAssertion
     , parseAssertion
     , Session (Session), newSession
@@ -108,16 +106,6 @@ data SAMLAssertionException
 
 ------------------------------------------------------------------------------
 type Attributes = [(Text, [Text])]
-
-
-------------------------------------------------------------------------------
-class FromAttributes a where
-    fromAttributes :: Attributes -> Maybe a
-
-
-------------------------------------------------------------------------------
-class ToAttributes a where
-    toAttributes :: a -> Attributes
 
 
 ------------------------------------------------------------------------------

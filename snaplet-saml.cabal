@@ -6,7 +6,7 @@ license-file:   LICENSE
 author:         Shane O'Brien
 maintainer:     shane@duairc.com
 stability:      Experimental
-category:       Type
+category:       Web
 cabal-version:  >= 1.6
 build-type:     Simple
 homepage:       https://github.com/duairc/snaplet-saml
@@ -14,6 +14,12 @@ bug-reports:    https://github.com/duairc/snaplet-saml/issues
 
 extra-source-files:
   LICENSE
+
+data-files:
+  config/devel.cfg
+  config/idp.xml
+  config/certificate.pem
+  config/key.pem
 
 library
   hs-source-dirs:
@@ -32,6 +38,7 @@ library
     Text.Blaze.SAML.Protocol
     Text.Blaze.XML.Signature
     Text.XML.Signature
+    Paths_snaplet_saml
 
   build-depends:
     asn1-encoding,
@@ -40,10 +47,11 @@ library
     base64-bytestring,
     blaze-markup,
     bytestring,
+    configurator,
     cryptonite,
     directory,
+    filepath,
     hashable,
-    hostname,
     layers,
     lens,
     modern-uri,
@@ -54,11 +62,10 @@ library
     resource,
     semigroupoids,
     snap,
+    snap-core,
     text,
     time,
     transformers,
-    unordered-containers,
-    uuid,
     x509,
     xml-conduit,
     zlib
