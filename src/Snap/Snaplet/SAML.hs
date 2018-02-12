@@ -32,7 +32,7 @@ import qualified Data.ByteString.Lazy as L
 
 
 -- configurator --------------------------------------------------------------
-import           Data.Configurator (require)
+import           Data.Configurator (require, lookupDefault)
 import qualified Data.Configurator.Types as C
 
 
@@ -115,13 +115,16 @@ import           Codec.Compression.Zlib.Raw (compress, decompress)
 ------------------------------------------------------------------------------
 data SAMLConfig = SAMLConfig
     { _host :: !Text
+    , _self :: !Bool
     }
   deriving (Generic, Typeable)
 
 
 ------------------------------------------------------------------------------
 mkSAMLConfig :: C.Config -> IO SAMLConfig
-mkSAMLConfig config = SAMLConfig <$> require config "host"
+mkSAMLConfig config = SAMLConfig
+    <$> require config "host"
+    <*> lookupDefault False config "allow-self-signed"
 
 
 ------------------------------------------------------------------------------
@@ -143,6 +146,7 @@ data SAML b = SAML
     , _sp :: !SP
     , _key :: !PrivKey
     , _certificate :: ![SignedCertificate]
+    , _self :: !Bool
     , _doLogin :: !(LoginHandler b)
     , _doLogout :: !(LogoutHandler b)
     }
@@ -161,7 +165,7 @@ loadSAMLConfig doLogin doLogout config = do
         ]
     getSnapletRootURL >>= go dir
   where
-    SAMLConfig host = config
+    SAMLConfig host self = config
     idpPath = "idp.xml"
     keyPath = "key.pem"
     certificatePath = "certificate.pem"
@@ -175,7 +179,7 @@ loadSAMLConfig doLogin doLogout config = do
         loginURL <- appendPath samlBaseURL <$> mkPathPiece "login"
         logoutURL <- appendPath samlBaseURL <$> mkPathPiece "logout"
         let sp = SP metadataURL loginURL logoutURL certificate certificate
-        pure $ SAML idp sp key cas doLogin doLogout
+        pure $ SAML idp sp key cas self doLogin doLogout
       where
         appendPath uri piece = uri & uriPath %~ (++ [piece])
 
@@ -191,7 +195,7 @@ samlInit doLogin doLogout =
 ------------------------------------------------------------------------------
 metadata :: Handler b (SAML b) ()
 metadata = do
-    SAML _ sp key _ _ _ <- ask
+    SAML _ sp key _ _ _ _ <- ask
     modifyResponse $ setContentType "application/xml"
     markup <- liftIO $ buildSignSP key sp
     writeLBS $ renderMarkup markup
@@ -210,7 +214,7 @@ logout = receiveLogout <|> sendLogout
 ------------------------------------------------------------------------------
 sendLogin :: Handler b (SAML b) a
 sendLogin = do
-    SAML idp@(IDP _ loginURL _ _ _) sp key _ _ _ <- ask
+    SAML idp@(IDP _ loginURL _ _ _) sp key _ _ _ _ <- ask
     (_, request) <- liftIO $ buildSignNewRequest idp sp key
     skey <- liftIO $ mkQueryKey "SAMLRequest"
     svalue <- liftIO $ mkQueryValue $ decodeUtf8 $ L.toStrict $ L64.encode
@@ -229,8 +233,8 @@ receiveLogin = do
     param <- getParam "SAMLResponse" >>= maybe pass pure
     document <- liftIO $ either fail pure (B64.decode param) >>=
         either throwIO pure . X.parseLBS X.def . L.fromStrict
-    SAML (IDP _ _ _ certificate _) _ _ cas doLogin _ <- ask
-    response <- liftIO $ parseVerifyResponse (certificate : cas) document
+    SAML (IDP _ _ _ certificate _) _ _ cas self doLogin _ <- ask
+    response <- liftIO $ parseVerifyResponse self (certificate : cas) document
     case response of
         Response (Assertion _ _ _ _ _ attributes _ _ (Session _ _ ending)) ->
             withTop' id $ doLogin attributes ending
@@ -240,7 +244,7 @@ receiveLogin = do
 ------------------------------------------------------------------------------
 sendLogout :: Handler b (SAML b) a
 sendLogout = do
-    SAML idp@(IDP _ _ logoutURL _ _) sp key _ _ doLogout <- ask
+    SAML idp@(IDP _ _ logoutURL _ _) sp key _ _ _ doLogout <- ask
     withTop' id doLogout
     (_, markup) <- liftIO $ buildSignSPLogoutRequest idp sp 300 key
     skey <- liftIO $ mkQueryKey "SAMLRequest"
@@ -254,7 +258,7 @@ sendLogout = do
 receiveLogout :: Handler b (SAML b) a
 receiveLogout = do
     param <- getParam "SAMLRequest" >>= maybe pass pure
-    SAML idp@(IDP _ _ logoutURL _ _) sp key _ _ doLogout <- ask
+    SAML idp@(IDP _ _ logoutURL _ _) sp key _ _ _ doLogout <- ask
     logoutRequest <- liftIO $
         either fail pure (L64.decode $ L.fromStrict param)
             >>= either throwIO pure . X.parseLBS X.def . decompress

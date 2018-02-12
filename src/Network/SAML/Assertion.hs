@@ -244,10 +244,11 @@ parseAssertion document = do
 
 
 ------------------------------------------------------------------------------
-parseVerifyAssertion :: [SignedCertificate] -> Document -> IO Assertion
-parseVerifyAssertion certificates xml = do
+parseVerifyAssertion :: Bool -> [SignedCertificate] -> Document
+    -> IO Assertion
+parseVerifyAssertion self certificates xml = do
     assertion <- either throwIO pure $ parseAssertion xml
-    verifies <- X.verifyDocument certificates xml
+    verifies <- X.verifyDocument self certificates xml
     if verifies
         then pure assertion
         else throwIO SignatureVerificationFailed

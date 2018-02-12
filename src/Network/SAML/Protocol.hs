@@ -191,10 +191,10 @@ parseRequest document = do
 
 
 ------------------------------------------------------------------------------
-parseVerifyRequest :: [SignedCertificate] -> Document -> IO Request
-parseVerifyRequest certificates xml = do
+parseVerifyRequest :: Bool -> [SignedCertificate] -> Document -> IO Request
+parseVerifyRequest self certificates xml = do
     rq <- either throwIO pure $ parseRequest xml
-    verifies <- X.verifyDocument certificates xml
+    verifies <- X.verifyDocument self certificates xml
     if verifies
         then pure rq
         else throwIO SignatureVerificationFailed
@@ -272,17 +272,17 @@ parseResponse document = fmap Response $
 
 
 ------------------------------------------------------------------------------
-parseVerifyResponse :: [SignedCertificate] -> Document -> IO Response
-parseVerifyResponse certificates document = do
+parseVerifyResponse :: Bool -> [SignedCertificate] -> Document -> IO Response
+parseVerifyResponse self certificates document = do
     assertionXML <- either throwIO (pure . toDocument) $ single NoAssertion $
         xml $/ element "{urn:oasis:names:tc:SAML:2.0:assertion}Assertion"
     assertion <- either (throwIO . UnparsableAssertion) pure $
         parseAssertion assertionXML
-    assertionVerifies <- X.verifyDocument certificates assertionXML
+    assertionVerifies <- X.verifyDocument self certificates assertionXML
     if assertionVerifies
        then pure $ Response assertion
        else do
-            verifies <- X.verifyDocument certificates document
+            verifies <- X.verifyDocument self certificates document
             if verifies
                 then pure $ Response assertion
                 else throwIO SignatureVerificationFailed
@@ -419,11 +419,11 @@ parseLogoutRequest document = do
 
 
 ------------------------------------------------------------------------------
-parseVerifyLogoutRequest :: [SignedCertificate] -> Document
+parseVerifyLogoutRequest :: Bool -> [SignedCertificate] -> Document
     -> IO LogoutRequest
-parseVerifyLogoutRequest certificates xml = do
+parseVerifyLogoutRequest self certificates xml = do
     logoutRequest <- either throwIO pure $ parseLogoutRequest xml
-    verifies <- X.verifyDocument certificates xml
+    verifies <- X.verifyDocument self certificates xml
     if verifies
         then pure logoutRequest
         else throwIO SignatureVerificationFailed
@@ -514,11 +514,11 @@ parseLogoutResponse document = do
 
 
 ------------------------------------------------------------------------------
-parseVerifyLogoutResponse :: [SignedCertificate] -> Document
+parseVerifyLogoutResponse :: Bool -> [SignedCertificate] -> Document
     -> IO LogoutResponse
-parseVerifyLogoutResponse certificates xml = do
+parseVerifyLogoutResponse self certificates xml = do
     logoutResponse <- either throwIO pure $ parseLogoutResponse xml
-    verifies <- X.verifyDocument certificates xml
+    verifies <- X.verifyDocument self certificates xml
     if verifies
         then pure logoutResponse
         else throwIO SignatureVerificationFailed
