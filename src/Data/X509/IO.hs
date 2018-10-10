@@ -56,10 +56,6 @@ import           Data.PEM
                      )
 
 
--- semigroupoids -------------------------------------------------------------
-import           Data.Functor.Alt ((<!>))
-
-
 -- x509 ----------------------------------------------------------------------
 import           Data.X509
                      ( PrivKey (PrivKeyRSA, PrivKeyDSA, PrivKeyEC)
@@ -69,17 +65,6 @@ import           Data.X509
                      , decodeSignedObject, encodeSignedObject
                      )
 import           Data.X509.EC (lookupCurveNameByOID)
-
-
-------------------------------------------------------------------------------
-instance ASN1Object PrivKey where
-    fromASN1 asn1 = first PrivKeyRSA <$> fromASN1 asn1
-        <!> first PrivKeyDSA <$> fromASN1 asn1
-        <!> first PrivKeyEC <$> fromASN1 asn1
-
-    toASN1 (PrivKeyRSA rsa) = toASN1 rsa
-    toASN1 (PrivKeyDSA dsa) = toASN1 dsa
-    toASN1 (PrivKeyEC ecdsa) = toASN1 ecdsa
 
 
 ------------------------------------------------------------------------------

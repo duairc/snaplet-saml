@@ -60,13 +60,12 @@ library
     process,
     random,
     resource,
-    semigroupoids,
     snap,
     snap-core,
     text,
     time,
     transformers,
-    x509,
+    x509 >= 1.7.4,
     xml-conduit,
     zlib
 
