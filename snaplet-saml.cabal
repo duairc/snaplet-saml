@@ -43,7 +43,7 @@ library
   build-depends:
     asn1-encoding,
     asn1-types,
-    base,
+    base < 5,
     base64-bytestring,
     blaze-markup,
     bytestring,
