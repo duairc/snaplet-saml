@@ -334,6 +334,7 @@ keyToPEM :: PrivKey -> PEM
 keyToPEM (PrivKeyRSA key) = asn1ObjectToPEM "RSA PRIVATE KEY" key
 keyToPEM (PrivKeyDSA key) = asn1ObjectToPEM "DSA PRIVATE KEY" key
 keyToPEM (PrivKeyEC key) = asn1ObjectToPEM "EC PRIVATE KEY" key
+keyToPEM key = asn1ObjectToPEM "PRIVATE KEY" key
 
 
 ------------------------------------------------------------------------------
