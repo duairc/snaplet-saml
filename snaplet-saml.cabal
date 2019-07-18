@@ -1,6 +1,6 @@
 name:           snaplet-saml
 version:        0.1
-synopsis:       Integrate your Snap application with a SAML Identity Provider
+synopsis:       Integrate your Snap application with a SAML IdP
 license:        MPL-2.0
 license-file:   LICENSE
 author:         Shane O'Brien
@@ -26,13 +26,19 @@ library
     src
 
   exposed-modules:
-    Snap.Snaplet.SAML
+    Snap.Snaplet.SAML.SP
 
   other-modules:
     Data.X509.IO
-    Network.SAML.Assertion
+    Network.SAML.Common
+    Network.SAML.Message
     Network.SAML.Metadata
-    Network.SAML.Protocol
+    Network.SAML.Protocol.SP
+    Network.SAML.Types
+    Snap.Snaplet.SAML.Binding
+    Snap.Snaplet.SAML.Binding.POST
+    Snap.Snaplet.SAML.Binding.Redirect
+    Snap.Snaplet.SAML.Config
     Text.Blaze.SAML.Assertion
     Text.Blaze.SAML.Metadata
     Text.Blaze.SAML.Protocol
@@ -45,6 +51,7 @@ library
     asn1-types,
     base < 5,
     base64-bytestring,
+    blaze-html,
     blaze-markup,
     bytestring,
     configurator,
@@ -52,6 +59,7 @@ library
     directory,
     filepath,
     hashable,
+    insert-ordered-containers,
     layers,
     lens,
     modern-uri,
@@ -64,7 +72,9 @@ library
     snap-core,
     text,
     time,
+    timeoutmap,
     transformers,
+    unordered-containers,
     x509 >= 1.7.4,
     xml-conduit,
     zlib

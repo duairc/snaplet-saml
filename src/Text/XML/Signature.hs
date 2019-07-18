@@ -145,15 +145,15 @@ signBytes key xml run = flip with pure $ do
 
 
 ------------------------------------------------------------------------------
-verifyDocument :: Bool -> [SignedCertificate] -> Document -> IO Bool
-verifyDocument self certs xml = verifyBytes self certs $ \handle -> do
+verifyDocument :: [SignedCertificate] -> Document -> IO Bool
+verifyDocument certs xml = verifyBytes certs $ \handle -> do
     L.hPutStr handle $ X.renderLBS X.def xml
     pure xml
 
 
 ------------------------------------------------------------------------------
-verifyMarkup :: Bool -> [SignedCertificate] -> Markup -> IO Bool
-verifyMarkup self certs xml = verifyBytes self certs $ \handle -> do
+verifyMarkup :: [SignedCertificate] -> Markup -> IO Bool
+verifyMarkup certs xml = verifyBytes certs $ \handle -> do
     L.hPutStr handle bytes
     either throwIO pure $ X.parseLBS X.def bytes
   where
@@ -161,17 +161,16 @@ verifyMarkup self certs xml = verifyBytes self certs $ \handle -> do
 
 
 ------------------------------------------------------------------------------
-verifyFile :: Bool -> [SignedCertificate] -> FilePath -> IO Bool
-verifyFile self certs xml = verifyBytes self certs $ \handle -> do
+verifyFile :: [SignedCertificate] -> FilePath -> IO Bool
+verifyFile certs xml = verifyBytes certs $ \handle -> do
     bytes <- L.readFile xml
     L.hPutStr handle bytes
     either throwIO pure $ X.parseLBS X.def bytes
 
 
 ------------------------------------------------------------------------------
-verifyBytes :: Bool -> [SignedCertificate] -> (Handle -> IO Document)
-    -> IO Bool
-verifyBytes self certs xml = flip with pure $ do
+verifyBytes :: [SignedCertificate] -> (Handle -> IO Document) -> IO Bool
+verifyBytes certs xml = flip with pure $ do
     certPaths <- for certs $ tempPath "cert.pem" . flip L.hPutStr
         . writeCertificateBytesLazy . pure
     (xmlPath, document) <- tempPath' "toverify.xml" xml
@@ -194,10 +193,7 @@ verifyBytes self certs xml = flip with pure $ do
         cp' = proc "xmlsec1" $ ["verify"] ++ pubkeys ++ intermediates ++ attrs
             ++ [xmlPath]
         pubkeys = foldMap ((:) "--pubkey-cert-pem" . pure) certPaths
-        intermediates = foldMap ((:) trust . pure) certPaths
-        trust
-            | self = "--trusted-pem"
-            | otherwise = "--untrusted-pem"
+        intermediates = foldMap (("--trusted-pem" :) . pure) [] -- certPaths
         attrs =
             [ "--id-attr:ID", "EntityDescriptor", "--id-attr:ID", "Response"
             , "--id-attr:ID", "Request", "--id-attr:ID", "Assertion"

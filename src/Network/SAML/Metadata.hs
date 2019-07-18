@@ -176,10 +176,10 @@ parseIDP document = do
 
 
 ------------------------------------------------------------------------------
-parseVerifyIDP :: Bool -> [SignedCertificate] -> Document -> IO IDP
-parseVerifyIDP self certificates xml = do
+parseVerifyIDP :: [SignedCertificate] -> Document -> IO IDP
+parseVerifyIDP certificates xml = do
     sp <- either throwIO pure $ parseIDP xml
-    verifies <- X.verifyDocument self certificates xml
+    verifies <- X.verifyDocument certificates xml
     if verifies
         then pure sp
         else throwIO SignatureVerificationFailed
@@ -274,10 +274,10 @@ parseSP document = do
 
 
 ------------------------------------------------------------------------------
-parseVerifySP :: Bool -> [SignedCertificate] -> Document -> IO SP
-parseVerifySP self certificates xml = do
+parseVerifySP :: [SignedCertificate] -> Document -> IO SP
+parseVerifySP certificates xml = do
     sp <- either throwIO pure $ parseSP xml
-    verifies <- X.verifyDocument self certificates xml
+    verifies <- X.verifyDocument certificates xml
     if verifies
         then pure sp
         else throwIO SignatureVerificationFailed
