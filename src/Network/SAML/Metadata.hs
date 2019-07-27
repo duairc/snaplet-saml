@@ -110,7 +110,7 @@ buildSignIDP key sp = X.signMarkup key $ buildIDPCommon (Just key) sp
 ------------------------------------------------------------------------------
 buildIDPCommon :: Maybe PrivKey -> IDP -> Markup
 buildIDPCommon mkey idp@(IDP metadata in_ out sign encrypt) = do
-    MD.entityDescriptor ! MD.namespace ! MD.entityID metadataURL ! id_ $ do
+    MD.entityDescriptor ! MD.entityID metadataURL ! id_ $ do
         case mkey of
             Just key -> MD.signature sigAlg hashAlg (Just sign) Nothing
               where
@@ -209,7 +209,7 @@ buildSignSP key sp = X.signMarkup key $ buildSPCommon (Just key) sp
 ------------------------------------------------------------------------------
 buildSPCommon :: Maybe PrivKey -> SP -> Markup
 buildSPCommon mkey sp@(SP metadata in_ out sign encrypt) = do
-    MD.entityDescriptor ! MD.namespace ! MD.entityID metadataURL ! id_ $ do
+    MD.entityDescriptor ! MD.entityID metadataURL ! id_ $ do
         case mkey of
             Just key -> MD.signature sigAlg hashAlg (Just sign) Nothing
               where

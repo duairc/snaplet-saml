@@ -52,7 +52,10 @@ issuer = customParent "saml:Issuer"
 
 ------------------------------------------------------------------------------
 assertion :: Markup -> Markup
-assertion = customParent "saml:Assertion" ! customAttribute "Version" "2.0"
+assertion = customParent "saml:Assertion" ! namespace
+    ! customAttribute "xmlns:xs" "http://www.w3.org/2001/XMLSchema"
+    ! customAttribute "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance"
+    ! customAttribute "Version" "2.0"
 
 
 ------------------------------------------------------------------------------

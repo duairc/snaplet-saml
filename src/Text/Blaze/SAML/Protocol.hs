@@ -36,7 +36,7 @@ namespace = customAttribute "xmlns:samlp"
 
 ------------------------------------------------------------------------------
 authnRequest :: Markup -> Markup
-authnRequest = customParent "samlp:AuthnRequest"
+authnRequest = customParent "samlp:AuthnRequest" ! namespace
     ! customAttribute "ProtocolBinding"
         "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
     ! customAttribute "Version" "2.0"
@@ -59,7 +59,8 @@ destination = customAttribute "Destination"
 
 ------------------------------------------------------------------------------
 response :: Markup -> Markup
-response = customParent "samlp:Response" ! customAttribute "Version" "2.0"
+response = customParent "samlp:Response" ! namespace ! SAML.namespace
+    ! customAttribute "Version" "2.0"
 
 
 ------------------------------------------------------------------------------
@@ -89,7 +90,7 @@ issuer = SAML.issuer ! SAML.namespace
 
 ------------------------------------------------------------------------------
 logoutRequest :: Markup -> Markup
-logoutRequest = customParent "samlp:LogoutRequest"
+logoutRequest = customParent "samlp:LogoutRequest" ! namespace
     ! customAttribute "Version" "2.0"
 
 
@@ -105,5 +106,5 @@ sessionIndex = customParent "samlp:SessionIndex"
 
 ------------------------------------------------------------------------------
 logoutResponse :: Markup -> Markup
-logoutResponse = customParent "samlp:LogoutResponse"
+logoutResponse = customParent "samlp:LogoutResponse" ! namespace
     ! customAttribute "Version" "2.0"

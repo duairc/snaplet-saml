@@ -34,6 +34,7 @@ import           Data.X509
                      , SignedCertificate, encodeSignedObject
                      )
 
+
 ------------------------------------------------------------------------------
 namespace :: Attribute
 namespace = customAttribute "xmlns:ds" "http://www.w3.org/2000/09/xmldsig#"
@@ -41,7 +42,7 @@ namespace = customAttribute "xmlns:ds" "http://www.w3.org/2000/09/xmldsig#"
 
 ------------------------------------------------------------------------------
 signature :: Markup -> Markup
-signature = customParent "ds:Signature"
+signature = customParent "ds:Signature" ! namespace
 
 
 ------------------------------------------------------------------------------

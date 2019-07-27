@@ -46,7 +46,7 @@ namespace = customAttribute "xmlns:md" "urn:oasis:names:tc:SAML:2.0:metadata"
 
 ------------------------------------------------------------------------------
 entityDescriptor :: Markup -> Markup
-entityDescriptor = customParent "md:EntityDescriptor"
+entityDescriptor = customParent "md:EntityDescriptor" ! namespace
 
 
 ------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ nameIDFormat = customParent "md:NameIDFormat" $
 
 ------------------------------------------------------------------------------
 keyDescriptor :: Markup -> Markup
-keyDescriptor = customParent "md:KeyDescriptor"
+keyDescriptor = customParent "md:KeyDescriptor" ! DS.namespace
 
 
 ------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ use = customAttribute "use"
 ------------------------------------------------------------------------------
 signature :: SignatureALG -> HashALG -> Maybe SignedCertificate
     -> Maybe AttributeValue -> Markup
-signature sig digest certificate id_ = DS.signature ! DS.namespace $ do
+signature sig digest certificate id_ = DS.signature $ do
     DS.signedInfo $ do
         DS.canonicalizationMethod ! DS.algorithm eC14n
         DS.signatureMethod sig
@@ -158,4 +158,4 @@ signature sig digest certificate id_ = DS.signature ! DS.namespace $ do
 
 ------------------------------------------------------------------------------
 keyInfo :: SignedCertificate -> Markup
-keyInfo = (DS.keyInfo ! DS.namespace) . DS.x509Data . DS.x509Certificate
+keyInfo = DS.keyInfo . DS.x509Data . DS.x509Certificate

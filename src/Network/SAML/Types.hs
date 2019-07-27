@@ -128,7 +128,7 @@ instance Message Assertion where
     param _ = SAMLResponse
     build = buildAssertion
     parse = parseAssertion
-    destination (Assertion _ _ sp _ _ _ _ _ _ _) = sp
+    destination (Assertion _ _ _ destination _ _ _ _ _ _) = destination
 
 
 ------------------------------------------------------------------------------
@@ -150,7 +150,6 @@ newAssertion idp sp diff attributes request session = do
 ------------------------------------------------------------------------------
 buildAssertion :: Assertion -> Markup -> Markup
 buildAssertion assertion children = SAML.assertion ! SAML.id (textValue id)
-    ! SAML.namespace
     ! SAML.issueInstant beginning
     $ do
         children
@@ -298,7 +297,6 @@ newRequest (IDP _ idp _ _ _) (SP sp login _ _ _) = do
 ------------------------------------------------------------------------------
 buildRequest :: Request -> Markup -> Markup
 buildRequest request children = SAMLP.authnRequest
-    ! SAMLP.namespace
     ! SAMLP.destination (textValue $ render idp)
     ! SAMLP.assertionConsumerServiceURL (textValue $ render login)
     ! SAMLP.issueInstant instant
@@ -353,7 +351,6 @@ newResponse i s d a r h = Response <$> newName <*> newAssertion i s d a r h
 ------------------------------------------------------------------------------
 buildResponse :: Response -> Markup -> Markup
 buildResponse response children = SAMLP.response
-    ! SAMLP.namespace
     ! SAMLP.destination (textValue $ render login)
     ! SAMLP.inResponseTo (textValue request)
     ! SAMLP.issueInstant beginning
@@ -432,7 +429,6 @@ spLogoutRequest idp sp name session diff = do
 ------------------------------------------------------------------------------
 buildLogoutRequest :: LogoutRequest -> Markup -> Markup
 buildLogoutRequest request children = SAMLP.logoutRequest
-    ! SAMLP.namespace
     ! SAMLP.destination (textValue $ render destination)
     ! SAMLP.issueInstant beginning
     ! SAMLP.notOnOrAfter ending
@@ -522,7 +518,6 @@ spLogoutResponse idp sp logoutRequest = do
 ------------------------------------------------------------------------------
 buildLogoutResponse :: LogoutResponse -> Markup -> Markup
 buildLogoutResponse response children = SAMLP.logoutResponse
-    ! SAMLP.namespace
     ! SAMLP.id (textValue id)
     ! SAMLP.issueInstant instant
     ! SAMLP.destination (textValue (render destination))
