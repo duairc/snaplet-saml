@@ -129,13 +129,12 @@ receive certificates = do
 ------------------------------------------------------------------------------
 sign :: Message a
     => Maybe (PrivKey, Maybe SignedCertificate) -> a -> IO Markup
-sign Nothing message = pure $ build message mempty
-sign (Just (key, certificate)) message = X.signMarkup key markup
+sign Nothing message = build message pure mempty
+sign (Just (key, certificate)) message = build message (X.signMarkup key) $
+    SAMLP.signature sigAlg hashAlg certificate empty
   where
-    markup = build message $ SAMLP.signature sigAlg hashAlg certificate empty
-      where
-        sigAlg = SignatureALG hashAlg (privkeyToAlg key)
-        hashAlg = HashSHA256
+    sigAlg = SignatureALG hashAlg (privkeyToAlg key)
+    hashAlg = HashSHA256
 
 
 ------------------------------------------------------------------------------

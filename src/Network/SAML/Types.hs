@@ -148,8 +148,10 @@ newAssertion idp sp diff attributes request session = do
 
 
 ------------------------------------------------------------------------------
-buildAssertion :: Assertion -> Markup -> Markup
-buildAssertion assertion children = SAML.assertion ! SAML.id (textValue id)
+buildAssertion :: Monad m
+    => Assertion -> (Markup -> m Markup) -> Markup -> m Markup
+buildAssertion assertion wrap children = wrap $ SAML.assertion
+    ! SAML.id (textValue id)
     ! SAML.issueInstant beginning
     $ do
         children
@@ -163,8 +165,7 @@ buildAssertion assertion children = SAML.assertion ! SAML.id (textValue id)
                 ! SAML.recipient (textValue (render login))
         SAML.conditions
             ! SAML.notBefore beginning ! SAML.notOnOrAfter ending
-            $ SAML.audienceRestriction $ SAML.audienceRestriction $ do
-                text $ render sp
+            $ SAML.audienceRestriction $ SAML.audience $ text $ render sp
         buildSession session
         SAML.attributeStatement $ ifor_ attributes $ \key values -> do
             SAML.attribute key $ for_ values $ SAML.attributeValue
@@ -295,8 +296,9 @@ newRequest (IDP _ idp _ _ _) (SP sp login _ _ _) = do
 
 
 ------------------------------------------------------------------------------
-buildRequest :: Request -> Markup -> Markup
-buildRequest request children = SAMLP.authnRequest
+buildRequest :: Monad m
+    => Request -> (Markup -> m Markup) -> Markup -> m Markup
+buildRequest request wrap children = wrap $ SAMLP.authnRequest
     ! SAMLP.destination (textValue $ render idp)
     ! SAMLP.assertionConsumerServiceURL (textValue $ render login)
     ! SAMLP.issueInstant instant
@@ -349,17 +351,20 @@ newResponse i s d a r h = Response <$> newName <*> newAssertion i s d a r h
 
 
 ------------------------------------------------------------------------------
-buildResponse :: Response -> Markup -> Markup
-buildResponse response children = SAMLP.response
-    ! SAMLP.destination (textValue $ render login)
-    ! SAMLP.inResponseTo (textValue request)
-    ! SAMLP.issueInstant beginning
-    ! SAMLP.id (textValue id)
-    $ do
-        children
-        SAMLP.issuer $ text $ render idp
-        SAMLP.status $ SAMLP.statusCode ! SAMLP.success
-        buildAssertion assertion children
+buildResponse :: Monad m
+    => Response -> (Markup -> m Markup) -> Markup -> m Markup
+buildResponse response wrap children = do
+    child <- buildAssertion assertion wrap children
+    wrap $ SAMLP.response
+        ! SAMLP.destination (textValue $ render login)
+        ! SAMLP.inResponseTo (textValue request)
+        ! SAMLP.issueInstant beginning
+        ! SAMLP.id (textValue id)
+        $ do
+            children
+            SAMLP.issuer $ text $ render idp
+            SAMLP.status $ SAMLP.statusCode ! SAMLP.success
+            child
   where
     Response id assertion = response
     Assertion _ idp _ login beginning _ _ _ request _ = assertion
@@ -427,8 +432,9 @@ spLogoutRequest idp sp name session diff = do
 
 
 ------------------------------------------------------------------------------
-buildLogoutRequest :: LogoutRequest -> Markup -> Markup
-buildLogoutRequest request children = SAMLP.logoutRequest
+buildLogoutRequest :: Monad m
+    => LogoutRequest -> (Markup -> m Markup) -> Markup -> m Markup
+buildLogoutRequest request wrap children = wrap $ SAMLP.logoutRequest
     ! SAMLP.destination (textValue $ render destination)
     ! SAMLP.issueInstant beginning
     ! SAMLP.notOnOrAfter ending
@@ -516,8 +522,9 @@ spLogoutResponse idp sp logoutRequest = do
 
 
 ------------------------------------------------------------------------------
-buildLogoutResponse :: LogoutResponse -> Markup -> Markup
-buildLogoutResponse response children = SAMLP.logoutResponse
+buildLogoutResponse :: Monad m
+    => LogoutResponse -> (Markup -> m Markup) -> Markup -> m Markup
+buildLogoutResponse response wrap children = wrap $ SAMLP.logoutResponse
     ! SAMLP.id (textValue id)
     ! SAMLP.issueInstant instant
     ! SAMLP.destination (textValue (render destination))

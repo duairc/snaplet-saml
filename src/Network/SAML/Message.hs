@@ -40,5 +40,5 @@ data Param = SAMLRequest | SAMLResponse
 class Message a where
     param :: proxy a -> Param
     parse :: Document -> Either SomeException a
-    build :: a -> Markup -> Markup
+    build :: Monad m => a -> (Markup -> m Markup) -> Markup -> m Markup
     destination :: a -> URI

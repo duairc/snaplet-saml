@@ -32,6 +32,7 @@ import           Data.Bits ((.&.), shiftR)
 import           Data.Char (intToDigit, isAlphaNum)
 import           Data.Foldable (fold, traverse_)
 import           Data.Function ((&))
+import           Data.Functor.Identity (runIdentity)
 import           Data.List (intersperse)
 import           Data.Maybe (mapMaybe)
 import           Data.Monoid (Any (Any), Ap (Ap), getAp)
@@ -228,7 +229,7 @@ send mkey message relay = case mkey of
         SAMLRequest -> "SAMLRequest"
         SAMLResponse -> "SAMLResponse"
     value = decodeUtf8 $ L.toStrict $ L64.encode $ compress $ renderMarkup $
-        build message mempty
+        runIdentity $ build message pure mempty
     mrelay = ((,) "RelayState") . render <$> relay
     go params = do
         qparams <- liftIO $ traverse qparam params
