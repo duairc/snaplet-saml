@@ -22,7 +22,10 @@ import           Data.Traversable (for)
 import           Data.Typeable (Typeable)
 import           GHC.Generics (Generic)
 import           System.Exit (ExitCode (ExitSuccess, ExitFailure))
-import           System.IO (Handle, hClose, openBinaryTempFile)
+import           System.IO
+                     ( Handle, hClose, openBinaryTempFile, withBinaryFile
+                     , IOMode (ReadMode)
+                     )
 
 
 -- base64-bytestring ---------------------------------------------------------
@@ -38,6 +41,10 @@ import           Text.Blaze.Renderer.Utf8 (renderMarkup)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
+
+
+-- deepseq -------------------------------------------------------------------
+import           Control.DeepSeq (($!!))
 
 
 -- directory -----------------------------------------------------------------
@@ -126,6 +133,15 @@ signBytes key xml run = flip with pure $ do
     lift $ waitForProcess p >>= \exitCode -> case exitCode of
         ExitSuccess -> do
             hClose resultHandle
+            finalize <- withBinaryFile resultPath ReadMode $ \handle -> do
+                line <- B.hGetLine handle
+                if "<?xml " `B.isPrefixOf` line
+                    then do
+                        contents <- L.hGetContents handle
+                        _ <- pure $!! contents
+                        pure $ L.writeFile resultPath contents
+                    else pure (pure ())
+            finalize
             run resultPath
         code@(ExitFailure _) -> do
             errorText <- B.hGetContents e

@@ -60,6 +60,7 @@ library
     bytestring,
     configurator,
     cryptonite,
+    deepseq,
     directory,
     filepath,
     hashable,

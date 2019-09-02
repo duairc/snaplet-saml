@@ -154,8 +154,8 @@ buildAssertion assertion wrap children = wrap $ SAML.assertion
     ! SAML.id (textValue id)
     ! SAML.issueInstant beginning
     $ do
-        children
         SAML.issuer $ text $ render idp
+        children
         SAML.subject $ do
             SAML.nameID ! SAML.spNameQualifier (textValue (render sp))
                 $ text name
@@ -304,8 +304,8 @@ buildRequest request wrap children = wrap $ SAMLP.authnRequest
     ! SAMLP.issueInstant instant
     ! SAMLP.id (textValue id)
     $ do
-        children
         SAMLP.issuer $ text $ render sp
+        children
   where
     Request id idp sp login instant = request
 
@@ -361,8 +361,8 @@ buildResponse response wrap children = do
         ! SAMLP.issueInstant beginning
         ! SAMLP.id (textValue id)
         $ do
+            SAML.issuer $ text $ render idp
             children
-            SAMLP.issuer $ text $ render idp
             SAMLP.status $ SAMLP.statusCode ! SAMLP.success
             child
   where
@@ -440,8 +440,8 @@ buildLogoutRequest request wrap children = wrap $ SAMLP.logoutRequest
     ! SAMLP.notOnOrAfter ending
     ! SAMLP.id (textValue id)
     $ do
-        children
         SAMLP.issuer $ text $ render sender
+        children
         SAMLP.nameID ! SAML.spNameQualifier (textValue (render sp))
             $ text name
         SAMLP.sessionIndex $ text session
@@ -530,8 +530,8 @@ buildLogoutResponse response wrap children = wrap $ SAMLP.logoutResponse
     ! SAMLP.destination (textValue (render destination))
     ! SAMLP.inResponseTo (textValue request)
     $ do
-        children
         SAMLP.issuer $ text $ render sender
+        children
         SAMLP.status $ SAMLP.statusCode ! SAMLP.success
   where
     LogoutResponse id sender destination instant request = response

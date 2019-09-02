@@ -24,7 +24,9 @@ import           Text.Blaze.Internal (customAttribute, customParent)
 
 -- snap-snaplet-saml ---------------------------------------------------------
 import qualified Text.Blaze.SAML.Assertion as SAML
-import           Text.Blaze.SAML.Assertion (issueInstant, inResponseTo)
+import           Text.Blaze.SAML.Assertion
+                     ( assertion, issueInstant, inResponseTo
+                     )
 import qualified Text.Blaze.SAML.Metadata as MD
 
 
@@ -76,11 +78,6 @@ statusCode = customParent "samlp:StatusCode" mempty
 ------------------------------------------------------------------------------
 success :: Attribute
 success = customAttribute "Value" "urn:oasis:names:tc:SAML:2.0:status:Success"
-
-
-------------------------------------------------------------------------------
-assertion :: Markup -> Markup
-assertion = SAML.assertion ! SAML.namespace
 
 
 ------------------------------------------------------------------------------
