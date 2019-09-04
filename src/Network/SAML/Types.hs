@@ -392,7 +392,6 @@ data LogoutRequest = LogoutRequest
     , sp :: !URI
     , destination :: !URI
     , beginning :: !UTCTime
-    , ending :: !UTCTime
     , name :: !NameID
     , session :: !SessionIndex
     }
@@ -404,31 +403,26 @@ instance Message LogoutRequest where
     param _ = SAMLRequest
     build = buildLogoutRequest
     parse = parseLogoutRequest
-    destination (LogoutRequest _ _ _ destination _ _ _ _) = destination
+    destination (LogoutRequest _ _ _ destination _ _ _) = destination
 
 
 ------------------------------------------------------------------------------
-idpLogoutRequest :: IDP -> SP -> NameID -> SessionIndex -> NominalDiffTime
-    -> IO LogoutRequest
-idpLogoutRequest idp sp name session diff = do
+idpLogoutRequest :: IDP -> SP -> NameID -> SessionIndex -> IO LogoutRequest
+idpLogoutRequest idp sp name session = do
     id <- newName
     beginning <- getCurrentTime
-    let ending = diff `addUTCTime` beginning
-    pure $ LogoutRequest id sender sp' destination beginning ending name
-        session
+    pure $ LogoutRequest id sender sp' destination beginning name session
   where
     IDP sender _ _ _ _ = idp
     SP sp' _ destination _ _ = sp
 
 
 ------------------------------------------------------------------------------
-spLogoutRequest :: IDP -> SP -> NameID -> SessionIndex -> NominalDiffTime
-    -> IO LogoutRequest
-spLogoutRequest idp sp name session diff = do
+spLogoutRequest :: IDP -> SP -> NameID -> SessionIndex -> IO LogoutRequest
+spLogoutRequest idp sp name session = do
     id <- newName
     beginning <- getCurrentTime
-    let ending = diff `addUTCTime` beginning
-    pure $ LogoutRequest id sp' sp' destination beginning ending name session 
+    pure $ LogoutRequest id sp' sp' destination beginning name session 
   where
     IDP _ _ destination _ _ = idp
     SP sp' _ _ _ _ = sp
@@ -440,7 +434,6 @@ buildLogoutRequest :: Monad m
 buildLogoutRequest request wrap children = wrap $ SAMLP.logoutRequest
     ! SAMLP.destination (textValue $ render destination)
     ! SAMLP.issueInstant beginning
-    ! SAMLP.notOnOrAfter ending
     ! SAMLP.id (textValue id)
     $ do
         SAMLP.issuer $ text $ render sender
@@ -449,8 +442,7 @@ buildLogoutRequest request wrap children = wrap $ SAMLP.logoutRequest
             $ text name
         SAMLP.sessionIndex $ text session
   where
-    LogoutRequest id sender sp destination beginning ending name session =
-        request
+    LogoutRequest id sender sp destination beginning name session = request
 
 
 ------------------------------------------------------------------------------
@@ -467,16 +459,13 @@ parseLogoutRequest document = do
         & attribute "Destination"
     beginning <- (parseTime =<<) . single NoInstant $ xml
         & attribute "IssueInstant"
-    ending <- (parseTime =<<) . single NoInstant $ xml
-        & attribute "NotOnOrAfter"
     name <- single NoSPURL $ xml
         $/ element "{urn:oasis:names:tc:SAML:2.0:assertion}NameID"
         &/ content
     session <- single NoSPURL $ xml
         $/ element "{urn:oasis:names:tc:SAML:2.0:protocol}SessionIndex"
         &/ content
-    pure $ LogoutRequest id sender sp destination beginning ending name
-        session
+    pure $ LogoutRequest id sender sp destination beginning name session
   where
     xml = fromDocument document
     single err = foldr (const . Right) (Left $ toException err)
@@ -521,7 +510,7 @@ spLogoutResponse idp sp logoutRequest = do
   where
     IDP _ _ destination _ _ = idp
     SP sender _ _ _ _ = sp
-    LogoutRequest request _ _ _ _ _ _ _ = logoutRequest
+    LogoutRequest request _ _ _ _ _ _ = logoutRequest
 
 
 ------------------------------------------------------------------------------

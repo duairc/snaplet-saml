@@ -67,7 +67,7 @@ postlogin (Response _ (Assertion _ _ _ _ _ _ attributes _ name session)) = do
 
 ------------------------------------------------------------------------------
 logout :: MonadSP m => LogoutRequest -> m LogoutResponse
-logout request@(LogoutRequest _ _ _ _ _ _ name session) = do
+logout request@(LogoutRequest _ _ _ _ _ name session) = do
     Env idp sp <- ask
     _ <- off (pure name) (pure session)
     liftIO $ spLogoutResponse idp sp request
@@ -78,7 +78,7 @@ precologout :: MonadSP m => m LogoutRequest
 precologout = do
     Env idp sp <- ask
     (name, session) <- off empty empty
-    liftIO $ spLogoutRequest idp sp name session 300
+    liftIO $ spLogoutRequest idp sp name session
 
 
 ------------------------------------------------------------------------------

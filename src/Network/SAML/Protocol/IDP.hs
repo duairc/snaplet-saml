@@ -192,9 +192,7 @@ login request@(Request _ _ url _ _) = do
 send :: MonadIDP m => SessionIndex -> SP -> m LogoutRequest
 send index sp = do
     Env idp _ <- ask
-    liftIO $ idpLogoutRequest idp sp index index duration
-  where
-    duration = 300
+    liftIO $ idpLogoutRequest idp sp index index
 
 
 ------------------------------------------------------------------------------
@@ -280,7 +278,7 @@ postlogout input = finish $ runMaybeT $ do
 ------------------------------------------------------------------------------
 cologout :: MonadIDP m
     => LogoutRequest -> m (Either LogoutRequest LogoutResponse)
-cologout (LogoutRequest request url _ _ _ _ _ index) = do
+cologout (LogoutRequest request url _ _ _ _ index) = do
     mindex <- lookup
     case mindex of
         Just index' | index == index' -> do
