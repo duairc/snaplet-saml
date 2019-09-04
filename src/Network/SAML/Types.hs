@@ -20,6 +20,7 @@ import           Control.Monad ((>=>))
 import           Data.Bifunctor (first)
 import           Data.Foldable (for_)
 import           Data.Function ((&))
+import           Data.Functor.Identity (runIdentity)
 import           Data.Semigroup ((<>))
 import           Data.Typeable (Typeable)
 import           Data.Word (Word64)
@@ -354,7 +355,8 @@ newResponse i s d a r h = Response <$> newName <*> newAssertion i s d a r h
 buildResponse :: Monad m
     => Response -> (Markup -> m Markup) -> Markup -> m Markup
 buildResponse response wrap children = do
-    child <- buildAssertion assertion wrap children
+    -- FIXME: this doesn't work
+    -- child <- buildAssertion assertion wrap children
     wrap $ SAMLP.response
         ! SAMLP.destination (textValue $ render login)
         ! SAMLP.inResponseTo (textValue request)
@@ -364,7 +366,8 @@ buildResponse response wrap children = do
             SAML.issuer $ text $ render idp
             children
             SAMLP.status $ SAMLP.statusCode ! SAMLP.success
-            child
+            -- child
+            runIdentity $ buildAssertion assertion pure mempty
   where
     Response id assertion = response
     Assertion _ idp _ login beginning _ _ _ request _ = assertion
